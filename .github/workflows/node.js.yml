@@ -1,5 +1,5 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code, and run tests across different versions of Node.js
+# For more information, see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Node.js CI
 
@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,11 +20,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+
+    - name: Check for Lock File
+      id: lock-check
+      run: |
+        if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ] || [ -f yarn.lock ]; then
+          echo "lock-file-exists=true" >> $GITHUB_ENV
+        else
+          echo "lock-file-exists=false" >> $GITHUB_ENV
+        fi
+
+    - name: Install Dependencies
+      run: |
+        if [ "$lock-file-exists" == "true" ]; then
+          npm ci
+        else
+          npm install
+        fi
+
+    - name: Build Source Code
+      run: npm run build --if-present
+
+    - name: Run Tests
+      run: npm test
