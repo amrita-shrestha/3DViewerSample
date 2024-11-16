@@ -26,3 +26,24 @@ jobs:
       run: |
         npm install
         npm run build
+        
+  deploy:
+    needs: build  # Ensure deployment runs after build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js for deployment
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Deploy to Server or Cloud
+      env:
+        DEPLOYMENT_TOKEN: ${{ secrets.DEPLOYMENT_TOKEN }}  # Use a secret for your deployment token
+      run: |
+        echo "Deploying build to the server..."
+        # Example deployment command:
+        scp -r dist/* user@yourserver:/path/to/deploy  # Replace with your actual deployment command
